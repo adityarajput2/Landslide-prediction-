@@ -1,0 +1,110 @@
+{
+    "model_name": "LandSafe AI Random Forest Classifier",
+    "algorithm": "RandomForestClassifier",
+    "trained_at": "2026-10-10T19:55:44.182470",
+    "n_samples": 4000,
+    "test_size": 0.2,
+    "features": [
+        "rainfall_mm",
+        "rainfall_72h_accum_mm",
+        "soil_moisture_pct",
+        "slope_degrees",
+        "elevation_m",
+        "temperature_c",
+        "humidity_pct",
+        "lithology_risk_index"
+    ],
+    "feature_descriptions": {
+        "rainfall_mm": "Current 24-hour rainfall in millimeters",
+        "rainfall_72h_accum_mm": "Cumulative 72-hour antecedent rainfall in millimeters",
+        "soil_moisture_pct": "Volumetric soil moisture percentage (0-100%)",
+        "slope_degrees": "Topographic terrain slope in degrees (0-90)",
+        "elevation_m": "Digital elevation in meters above sea level",
+        "temperature_c": "Ambient air temperature in Celsius",
+        "humidity_pct": "Relative humidity percentage (0-100%)",
+        "lithology_risk_index": "Geological rock formation vulnerability index (1=hard rock, 5=weak shale/alluvium)"
+    },
+    "target_classes": [
+        "LOW RISK",
+        "MEDIUM RISK",
+        "HIGH RISK"
+    ],
+    "class_mapping": {
+        "LOW RISK": 0,
+        "MEDIUM RISK": 1,
+        "HIGH RISK": 2
+    },
+    "metrics": {
+        "accuracy": 0.8988,
+        "precision": 0.8995,
+        "recall": 0.8988,
+        "f1_score": 0.8984,
+        "confusion_matrix": [
+            [
+                53,
+                19,
+                0
+            ],
+            [
+                7,
+                211,
+                28
+            ],
+            [
+                0,
+                27,
+                455
+            ]
+        ],
+        "classification_report": {
+            "HIGH RISK": {
+                "precision": 0.9420289855072463,
+                "recall": 0.9439834024896265,
+                "f1-score": 0.9430051813471503,
+                "support": 482.0
+            },
+            "LOW RISK": {
+                "precision": 0.8833333333333333,
+                "recall": 0.7361111111111112,
+                "f1-score": 0.803030303030303,
+                "support": 72.0
+            },
+            "MEDIUM RISK": {
+                "precision": 0.8210116731517509,
+                "recall": 0.8577235772357723,
+                "f1-score": 0.8389662027833003,
+                "support": 246.0
+            },
+            "accuracy": 0.89875,
+            "macro avg": {
+                "precision": 0.8821246639974435,
+                "recall": 0.84593936361217,
+                "f1-score": 0.8616672290535844,
+                "support": 800.0
+            },
+            "weighted avg": {
+                "precision": 0.8995335532622794,
+                "recall": 0.89875,
+                "f1-score": 0.8984154563902501,
+                "support": 800.0
+            }
+        }
+    },
+    "feature_importances": {
+        "rainfall_mm": 0.1124,
+        "rainfall_72h_accum_mm": 0.1303,
+        "soil_moisture_pct": 0.118,
+        "slope_degrees": 0.4782,
+        "elevation_m": 0.0428,
+        "temperature_c": 0.0395,
+        "humidity_pct": 0.039,
+        "lithology_risk_index": 0.0398
+    },
+    "hyperparameters": {
+        "n_estimators": 120,
+        "max_depth": 14,
+        "min_samples_split": 4,
+        "min_samples_leaf": 2,
+        "class_weight": "balanced"
+    }
+}

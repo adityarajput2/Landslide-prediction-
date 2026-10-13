@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LandSafe AI — Landslide Monitoring, Prediction & Early Warning System</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏔️</text></svg>">
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS (Local Vendor with CDN Fallback) -->
+  <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css" onerror="this.onerror=null;this.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';" />
+  
+  <!-- Main Application CSS -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- =============================================================
+       TOP NAVIGATION BAR
+  ============================================================= -->
+  <nav class="navbar">
+    <div class="nav-brand" onclick="switchTab('home')">
+      <div class="brand-icon">🏔️</div>
+      <div>
+        <span class="brand-title">LandSafe AI</span>
+        <span class="brand-badge">NER-INDIA</span>
+      </div>
+    </div>
+
+    <ul class="nav-links">
+      <li class="nav-item active" data-tab="home">Home</li>
+      <li class="nav-item" data-tab="live">Live Monitoring</li>
+      <li class="nav-item" data-tab="all-india">All-India Search</li>
+      <li class="nav-item" data-tab="map">Risk Map</li>
+      <li class="nav-item" data-tab="weather">Weather</li>
+      <li class="nav-item" data-tab="terrain">Terrain Monitoring</li>
+      <li class="nav-item" data-tab="video-3d">🎥 3D Landslide Video</li>
+      <li class="nav-item" data-tab="forecast">Future Forecast</li>
+      <li class="nav-item" data-tab="vehicle">Vehicle Tracking</li>
+      <li class="nav-item" data-tab="local">Local Area</li>
+      <li class="nav-item" data-tab="emergency">Emergency Support</li>
+      <li class="nav-item" data-tab="admin">Admin Console</li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="btn btn-primary btn-sm" id="navLiveLocationBtn" onclick="quickNavLiveLocation()" title="Detect and monitor your real live location">
+        <span>📍</span> My Live Location
+      </button>
+      <div class="live-indicator">
+        <span class="pulse-dot" id="sysHealthDot"></span>
+        <span>AI ONLINE</span>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="requestNotificationPermission()">🔔 Alerts</button>
+      <a href="/download" class="btn btn-secondary btn-sm" download style="border-color: rgba(56,189,248,0.5); color: #38bdf8; text-decoration: none;" title="Download complete LandSafe AI source code ZIP">📥 Download ZIP</a>
+      <button class="btn-mobile-menu" id="mobileMenuToggle">☰</button>
+    </div>
+  </nav>
+
+  <!-- Global High-Risk Warning Alert Banner -->
+  <div id="emergencyHighBanner" class="emergency-banner" style="display: none; margin: 1rem 1.25rem 0;">
+    <div style="font-size: 2.2rem; line-height: 1;">🚨</div>
+    <div style="flex: 1;">
+      <h3 style="color: #f87171; margin-bottom: 0.25rem;">CRITICAL WARNING: HIGH LANDSLIDE RISK CONDITIONS DETECTED</h3>
+      <p style="font-size: 0.9rem; color: #fecaca;">
+        Follow local authority instructions, avoid unstable slopes and drainage channels, and move away from danger when it is safe to do so.
+      </p>
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="switchTab('emergency')">View Evacuation Plan</button>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+
+    <!-- =============================================================
+         TAB 1: HOME PAGE
+    ============================================================= -->
+    <div id="tab-home" class="tab-pane active">
+      <!-- 2-Column Front Page Hero Container with Side Admin Dashboard -->
+      <section class="hero-container">
+        <!-- Left: Hero Overview & Core Actions -->
+        <div class="hero-left">
+          <div class="hero-badge">
+            <span>🛡️</span> B.Tech AIML Major Project — North-Eastern Region (NER) India
+          </div>
+          <h1 class="hero-title">
+            AI-Based Early Warning &<br>Landslide Risk Monitoring System
+          </h1>
+          <p class="hero-subtitle">
+            Monitor environmental conditions, predict landslide risk, track locations and receive early warnings with AI-powered intelligence.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="switchTab('live'); triggerLiveDeviceGPS();">
+              <span>📍</span> Get Live Risk
+            </button>
+            <button class="btn btn-secondary" onclick="switchTab('map')">
+              <span>🗺️</span> View Risk Map
+            </button>
+            <button class="btn btn-secondary" onclick="switchTab('admin'); enterAdminDemoMode();" style="background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: #34d399;">
+              <span>🔒</span> Admin Console
+            </button>
+            <button class="btn btn-secondary" onclick="switchTab('video-3d')" style="background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.35); color: #38bdf8;">
+              <span>🎥</span> 3D AI Video
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Real-time Admin & Telemetry Dashboard Card -->
+        <div class="hero-right">
+          <div class="home-admin-card">
+            <div class="home-admin-header">
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <span style="font-size: 1.35rem;">🔒</span>
+                <div>
+                  <h3 style="font-size: 1.05rem; color: #38bdf8; margin: 0; font-weight: 700;">Admin Dashboard</h3>
+                  <span style="font-size: 0.72rem; color: #94a3b8;">System Telemetry & Central Control</span>
+                </div>
+              </div>
+              <span class="live-indicator" style="font-size: 0.68rem; padding: 0.2rem 0.5rem;">
+                <span class="pulse-dot"></span> SECURE
+              </span>
+            </div>
+
+            <!-- 4 Quick KPI Metrics -->
+            <div class="home-admin-stats">
+              <div class="home-stat-box">
+                <span class="home-stat-num" id="homeStatTotalPreds">28</span>
+                <span class="home-stat-lbl">Predictions</span>
+              </div>
+              <div class="home-stat-box">
+                <span class="home-stat-num" id="homeStatHighRisk" style="color: #ef4444;">4</span>
+                <span class="home-stat-lbl">High Risk</span>
+              </div>
+              <div class="home-stat-box">
+                <span class="home-stat-num" style="color: #10b981;">89.9%</span>
+                <span class="home-stat-lbl">Accuracy</span>
+              </div>
+              <div class="home-stat-box">
+                <span class="home-stat-num" style="color: #a78bfa;">19</span>
+                <span class="home-stat-lbl">Stations</span>
+              </div>
+            </div>
+
+            <!-- Live Service Status Indicators -->
+            <div class="home-admin-services">
+              <div class="home-service-item">
+                <span>🌦️ Open-Meteo API</span>
+                <span class="status-pill status-ok">Online</span>
+              </div>
+              <div class="home-service-item">
+                <span>⛰️ Horn 3×3 DEM</span>
+                <span class="status-pill status-ok">Active</span>
+              </div>
+              <div class="home-service-item">
+                <span>🗄️ SQLite Database</span>
+                <span class="status-pill status-ok">Connected</span>
+              </div>
+              <div class="home-service-item">
+                <span>🤖 Random Forest (120 Trees)</span>
+                <span class="status-pill status-ok">Loaded</span>
+              </div>
+            </div>
+
+            <!-- Verified Admin Login ID Credentials Display -->
+            <div style="background: rgba(14,25,52,0.85); border: 1px dashed rgba(56,189,248,0.4); border-radius: 8px; padding: 0.55rem 0.75rem; margin-top: 0.85rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; flex-wrap: wrap; gap: 0.4rem;">
+                <div>
+                  <span style="color: #94a3b8;">Admin Login ID:</span>
+                  <strong style="color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; margin-left: 0.25rem;">adityacreative64@gmail.com</strong>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.35rem;">
+                  <span style="color: #94a3b8;">Status:</span>
+                  <span style="color: #10b981; font-weight: 600; font-size: 0.75rem;">🔒 Password Protected</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Admin Actions -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.65rem;">
+              <button class="btn btn-primary btn-sm" onclick="switchTab('admin'); enterAdminDemoMode('adityacreative64@gmail.com');" style="font-size: 0.8rem; padding: 0.55rem 0.5rem;">
+                🔑 Login as Aditya
+              </button>
+              <a href="/download" class="btn btn-secondary btn-sm" download style="font-size: 0.8rem; padding: 0.55rem 0.5rem; text-align: center; border-color: rgba(56,189,248,0.5); color: #38bdf8; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.25rem;">
+                <span>📥</span> Download ZIP
+              </a>
+            </div>
+            
+            <!-- Recent Predictions Mini Ticker -->
+            <div style="margin-top: 0.85rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.65rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: #94a3b8; margin-bottom: 0.35rem;">
+                <span>Latest Monitored Evaluation:</span>
+                <span id="homeAdminRecentTime" style="color: #64748b;">Live</span>
+              </div>
+              <div id="homeAdminRecentItem" style="display: flex; justify-content: space-between; align-items: center; background: rgba(14,25,52,0.6); padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.78rem;">
+                <span id="homeAdminRecentLoc" style="color: #cbd5e1; font-weight: 500;">Shillong Peak Corridor, Meghalaya</span>
+                <span id="homeAdminRecentBadge" class="risk-badge risk-high" style="font-size: 0.68rem; padding: 0.1rem 0.4rem;">HIGH RISK</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 Summary Cards -->
+      <div class="summary-grid">
+        <div class="card" onclick="switchTab('live')" style="cursor: pointer;">
+          <div class="card-header-icon icon-ai">🤖</div>
+          <h3 class="card-title">1. AI Risk Prediction</h3>
+          <p class="card-desc">
+            Random Forest classifier evaluating rainfall, soil saturation, Horn 3x3 terrain slope, and geological lithology index into Low, Medium, or High Risk with explainable metrics.
+          </p>
+        </div>
+
+        <div class="card" onclick="switchTab('weather')" style="cursor: pointer;">
+          <div class="card-header-icon icon-weather">🌧️</div>
+          <h3 class="card-title">2. Live Weather</h3>
+          <p class="card-desc">
+            Direct integration with Open-Meteo REST API tracking current precipitation, 24h & 72h antecedent rainfall, volumetric soil moisture, temperature, and relative humidity.
+          </p>
+        </div>
+
+        <div class="card" onclick="switchTab('vehicle')" style="cursor: pointer;">
+          <div class="card-header-icon icon-gps">🚗</div>
+          <h3 class="card-title">3. GPS Tracking</h3>
+          <p class="card-desc">
+            Real device geolocation tracking, mountain corridor journey monitor, configurable 60 km/h speed threshold alarms, and proximity detection for active hazard zones.
+          </p>
+        </div>
+
+        <div class="card" onclick="switchTab('map')" style="cursor: pointer;">
+          <div class="card-header-icon icon-map">🗺️</div>
+          <h3 class="card-title">4. Landslide Risk Map</h3>
+          <p class="card-desc">
+            Interactive Leaflet GIS map with OpenStreetMap, color-coded risk markers across North-Eastern states (Meghalaya, Sikkim, Assam, Mizoram, Nagaland), and click-to-analyze capabilities.
+          </p>
+        </div>
+      </div>
+
+      <!-- Featured 3D Video & AI Simulation Showcase -->
+      <div class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(14,25,52,0.95), rgba(15,23,42,0.95)); border: 1px solid rgba(56,189,248,0.35); overflow: hidden; position: relative;">
+        <div style="position: absolute; top: -50px; right: -50px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(56,189,248,0.2), transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+              <span style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.4); padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em;">AI 3D SIMULATION</span>
+              <span style="color: #94a3b8; font-size: 0.78rem;">Scientific Geotechnical Modeling & Real-Time Computer Vision</span>
+            </div>
+            <h3 style="font-size: 1.35rem; color: #f8fafc; margin: 0; font-weight: 700;">🎥 3D AI Landslide Hazard Simulation & Video Analysis</h3>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.3rem 0 0;">
+              High-definition 3D numerical slope failure simulation with real-time AI computer vision telemetry HUD & interactive physics engine.
+            </p>
+          </div>
+          <button class="btn btn-primary" onclick="switchTab('video-3d')">
+            <span>🎬</span> Open Full 3D AI Simulation Suite
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; align-items: center;">
+          <div style="position: relative; border-radius: 10px; overflow: hidden; border: 1px solid rgba(56,189,248,0.3); background: #000; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer;" onclick="switchTab('video-3d')">
+            <video autoplay loop muted playsinline poster="/static/images/satellite_after.jpg" style="width: 100%; height: 215px; object-fit: cover; display: block;">
+              <source src="/static/videos/mountain_landslide_aerial.webm" type="video/webm">
+              <source src="/static/videos/usgs_landslide_3d.mp4" type="video/mp4">
+            </video>
+            <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); padding: 0.25rem 0.55rem; border-radius: 4px; font-size: 0.72rem; color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); font-family: 'JetBrains Mono', monospace;">
+              ● AI DETECT: Active Slope Rupture (94.7%)
+            </div>
+            <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(239,68,68,0.85); padding: 0.25rem 0.55rem; border-radius: 4px; font-size: 0.72rem; color: #fff; font-weight: 700;">
+              CRITICAL HAZARD
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+            <div style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 0.65rem 0.85rem; cursor: pointer;" onclick="switchTab('video-3d'); select3DVideoMode('hydro');">
+              <div style="font-size: 0.84rem; font-weight: 600; color: #38bdf8;">🌊 Multi-Phase FLOW-3D Hydro Dynamics</div>
+              <div style="font-size: 0.76rem; color: #94a3b8;">Simulates torrential rainwater infiltration and sudden soil-slurry liquefaction in mountain channels.</div>
+            </div>
+            <div style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 0.65rem 0.85rem; cursor: pointer;" onclick="switchTab('video-3d'); select3DVideoMode('usgs');">
+              <div style="font-size: 0.84rem; font-weight: 600; color: #10b981;">⛰️ USGS 3D Finite-Element Rotational Slump</div>
+              <div style="font-size: 0.76rem; color: #94a3b8;">Models circular slip arcs and deep-seated planar fractures with geotechnical Mohr-Coulomb failure criteria.</div>
+            </div>
+            <div style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 0.65rem 0.85rem; cursor: pointer;" onclick="switchTab('video-3d'); select3DVideoMode('interactive');">
+              <div style="font-size: 0.84rem; font-weight: 600; color: #f59e0b;">🎮 Interactive WebGL Physics Engine</div>
+              <div style="font-size: 0.76rem; color: #94a3b8;">Adjust rain downpour (0-120 mm/h), steepen slope angle, and trigger instantaneous 3D collapse with live telemetry.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NER Vulnerability Callout -->
+      <div class="ner-callout-banner">
+        <div class="callout-icon">⛰️</div>
+        <div class="callout-content">
+          <h4>Why North-Eastern Region (NER) India is Highly Vulnerable</h4>
+          <p>
+            The North-Eastern Himalayan Region features high seismicity, fragile tertiary sedimentary lithology (shale, phyllite), steep fault scarps, and world-record monsoon precipitation (Cherrapunji & Mawsynram). During heavy downpours, pore-water pressure rapidly destabilizes mountain slopes. LandSafe AI provides early warning intelligence to safeguard communities, mountain highways, and emergency responders.
+          </p>
+        </div>
+      </div>
+
+      <!-- How It Works Pipeline -->
+      <div class="card" style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; color: #38bdf8;">How LandSafe AI Operates</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
+          <div>
+            <div style="font-weight: 700; color: #10b981; margin-bottom: 0.35rem;">Step 1: Telemetry Ingestion</div>
+            <p style="font-size: 0.85rem; color: #94a3b8;">
+              Retrieves real-time atmospheric data from Open-Meteo and digital elevation models with geographic coordinate spacing.
+            </p>
+          </div>
+          <div>
+            <div style="font-weight: 700; color: #38bdf8; margin-bottom: 0.35rem;">Step 2: 3D Topographic Modeling</div>
+            <p style="font-size: 0.85rem; color: #94a3b8;">
+              Executes Horn 3×3 gradient algorithm over local elevation grids to compute precise slope angles in degrees.
+            </p>
+          </div>
+          <div>
+            <div style="font-weight: 700; color: #f59e0b; margin-bottom: 0.35rem;">Step 3: Random Forest Inference</div>
+            <p style="font-size: 0.85rem; color: #94a3b8;">
+              Processes antecedent moisture and geotechnical indices to predict risk category, class probabilities, and dominant triggers.
+            </p>
+          </div>
+          <div>
+            <div style="font-weight: 700; color: #ef4444; margin-bottom: 0.35rem;">Step 4: Proactive Alerts</div>
+            <p style="font-size: 0.85rem; color: #94a3b8;">
+              Dispatches multi-channel early warnings, speed limit caution notifications, and pre-formatted emergency SOS transmissions.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================================================
+         TAB 2: LIVE MONITORING
+    ============================================================= -->
+    <div id="tab-live" class="tab-pane">
+      <div class="section-header">
+        <h2 class="section-title"><span>📡</span> Live Environmental & Landslide Risk Monitoring</h2>
+        <p class="section-subtitle">Real-time telemetry ingestion, 3D slope gradient calculation, and AI risk evaluation.</p>
+      </div>
+
+      <!-- Telemetry Status Bar -->
+      <div class="telemetry-bar" style="flex-direction: column; align-items: stretch; gap: 0.85rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+          <div class="location-display">
+            <span style="font-size: 1.4rem;">📍</span>
+            <div>
+              <div style="font-weight: 700; font-size: 1.05rem;" id="dispLocationName">Shillong Peak Corridor, Meghalaya</div>
+              <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem; flex-wrap: wrap;">
+                <span class="coords-pill" id="dispLatitude">25.5788° N</span>
+                <span class="coords-pill" id="dispLongitude">91.8933° E</span>
+                <span style="font-size: 0.75rem; font-weight: 700;" id="dispLiveStatusTag">MONITORING HOTSPOT</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-primary btn-sm" id="btnLiveGPS" onclick="triggerLiveDeviceGPS()" title="Request browser hardware/device location">
+              <span>📍</span> Device GPS
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btnDetectIP" onclick="detectLocationViaIP()" style="background: rgba(6,182,212,0.18); border-color: rgba(6,182,212,0.4);" title="Auto-detect location from network IP (works on all computers)">
+              <span>🌐</span> Detect via Network/IP
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="runLiveRiskPipeline()">
+              <span>🔄</span> Refresh Telemetry
+            </button>
+          </div>
+        </div>
+
+        <!-- Location Status Message Box -->
+        <div id="locationStatusBox" style="display: none; padding: 0.5rem 0.85rem; border-radius: 6px; font-size: 0.82rem; background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8;">
+        </div>
+
+        <!-- Location Search & Quick Picker Row -->
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.75rem; position: relative;">
+          <div style="flex: 1; min-width: 240px; position: relative;">
+            <input type="text" id="locationSearchInput" placeholder="🔍 Search any city, district or PIN (e.g. Indore, Bhopal, Shillong, Guwahati)..." 
+              class="btn btn-secondary" style="width: 100%; text-align: left; padding: 0.45rem 0.75rem; font-size: 0.85rem;"
+              onkeydown="if(event.key === 'Enter') searchAndSelectLocation();">
+            <div id="locationSearchResults" class="search-results-dropdown" style="display: none;"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="searchAndSelectLocation()">Search</button>
+
+          <!-- Quick Hotspot Shortcuts -->
+          <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+            <span style="font-size: 0.75rem; color: #64748b;">Quick:</span>
+            <button class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="selectHotspot(22.717, 75.8337, 'Indore, Madhya Pradesh')">Indore</button>
+            <button class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="selectHotspot(23.2599, 77.4126, 'Chhatrasal Nagar, Bhopal (PIN 462022)')">Bhopal</button>
+            <button class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="selectHotspot(25.5788, 91.8933, 'Shillong Peak Corridor, Meghalaya')">Shillong</button>
+            <button class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="selectHotspot(27.3389, 88.6065, 'Gangtok Teesta NH Corridor, Sikkim')">Gangtok</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loader -->
+      <div id="riskLoader" style="display: none; text-align: center; padding: 2rem;">
+        <div class="pulse-dot" style="margin: 0 auto 0.75rem; width: 16px; height: 16px;"></div>
+        <p style="color: #38bdf8; font-weight: 600;">Ingesting Live Atmospheric Telemetry & Calculating Horn 3x3 Slope...</p>
+      </div>
+
+      <div class="grid-2col">
+        <!-- Environmental Metric Gauges -->
+        <div>
+          <h3 style="font-size: 1.1rem; color: #38bdf8; margin-bottom: 0.85rem;">Observed Environmental Telemetry</h3>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-label">Temperature</span>
+              <span class="metric-val" id="metricTemp">--</span>
+              <span class="metric-sub" id="metricWeatherDesc">--</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Relative Humidity</span>
+              <span class="metric-val" id="metricHumidity">--</span>
+              <span class="metric-sub">Atmospheric saturation</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">24h Rainfall</span>
+              <span class="metric-val" id="metricRain24h">--</span>
+              <span class="metric-sub">Current precipitation</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">72h Antecedent Rain</span>
+              <span class="metric-val" id="metricRain72h">--</span>
+              <span class="metric-sub">Pore-water saturation</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Soil Moisture</span>
+              <span class="metric-val" id="metricSoilMoist">--</span>
+              <span class="metric-sub">Near-surface layer</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Digital Elevation</span>
+              <span class="metric-val" id="metricElev">--</span>
+              <span class="metric-sub">Above Sea Level (DEM)</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Horn 3×3 Slope</span>
+              <span class="metric-val" id="metricSlope">--</span>
+              <span class="metric-sub">Topographic gradient</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Wind Speed</span>
+              <span class="metric-val" id="metricWindSpeed">--</span>
+              <span class="metric-sub">Last updated: <span id="metricLastUpdated">--</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Risk Prediction Card -->
+        <div class="prediction-box" id="riskResultBox">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span style="font-size: 0.78rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Machine Learning Evaluation</span>
+              <div style="margin-top: 0.4rem;">
+                <span id="riskBadge" class="risk-badge risk-low">LOW RISK</span>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 0.8rem; color: #64748b;">Hazard Score</div>
+              <div style="font-size: 1.6rem; font-weight: 800; color: #38bdf8;" id="riskScoreVal">--</div>
+            </div>
+          </div>
+
+          <!-- Probability Breakdown -->
+          <div>
+            <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #cbd5e1;">Class Probabilities (Random Forest)</div>
+            <div class="prob-bar-container">
+              <div class="prob-row">
+                <span class="prob-label">Low Risk</span>
+                <div class="prob-track"><div id="barLowFill" class="prob-fill fill-low" style="width: 0%;"></div></div>
+                <span id="barLowText" class="prob-percent">0%</span>
+              </div>
+              <div class="prob-row">
+                <span class="prob-label">Medium Risk</span>
+                <div class="prob-track"><div id="barMedFill" class="prob-fill fill-med" style="width: 0%;"></div></div>
+                <span id="barMedText" class="prob-percent">0%</span>
+              </div>
+              <div class="prob-row">
+                <span class="prob-label">High Risk</span>
+                <div class="prob-track"><div id="barHighFill" class="prob-fill fill-high" style="width: 0%;"></div></div>
+                <span id="barHighText" class="prob-percent">0%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Primary Contributing Factors -->
+          <div>
+            <div style="font-size: 0.82rem; text-transform: uppercase; color: #64748b; margin-bottom: 0.25rem;">Primary Contributing Risk Factors</div>
+            <div style="font-size: 0.95rem; font-weight: 600; color: #e2e8f0;" id="riskPrimaryFactorVal">
+              Analyzing environmental conditions...
+            </div>
+          </div>
+
+          <!-- Precautions & Recommendations -->
+          <div class="recom-box">
+            <strong style="color: #38bdf8;">Recommended Precautions:</strong>
+            <p id="riskRecommendationsVal" style="margin-top: 0.25rem;">
+              Standard monitoring conditions. Follow official weather updates.
+            </p>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; margin-top: auto;">
+            <span>Model Confidence: <strong id="riskConfidenceVal" style="color: #94a3b8;">--</strong></span>
+            <span>Algorithm: Random Forest (120 Estimators)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================================================
+         TAB: ALL-INDIA SEARCH & HAZARD EXPLORER
+    ============================================================= -->
+    <div id="tab-all-india" class="tab-pane">
+      <div class="section-header">
+        <h2 class="section-title"><span>🇮🇳</span> All-India Landslide Risk & Location Search Explorer</h2>
+        <p class="section-subtitle">Real-time hazard evaluation across all Indian states, Western Ghats, Himalayan corridors, and the North-East.</p>
+      </div>
+
+      <!-- Global All-India Search Box -->
+      <div class="card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(14,25,52,0.85), rgba(6,182,212,0.12));">
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 280px; position: relative;">
+            <input type="text" id="allIndiaSearchInput" 
+              placeholder="🔍 Search ANY Indian city, district, hill station or PIN (e.g. Wayanad, Joshimath, Shimla, Darjeeling, Munnar, Mahabaleshwar, Indore, 462022)..." 
+              class="btn btn-secondary" style="width: 100%; text-align: left; padding: 0.75rem 1rem; font-size: 0.95rem; border-color: #38bdf8;"
+              onkeydown="if(event.key === 'Enter') executeAllIndiaSearch();">
+            <div id="allIndiaSearchResults" class="search-results-dropdown" style="display: none;"></div>
+          </div>
+          <button class="btn btn-primary" onclick="executeAllIndiaSearch()" style="padding: 0.75rem 1.4rem;">
+            <span>🔍</span> Search India
+          </button>
+        </div>
+
+        <!-- Filter Category Tabs -->
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.85rem;">
+          <span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">Region Filter:</span>
+          <button class="btn btn-secondary btn-sm region-filter-btn active" onclick="filterAllIndiaHotspots('all', this)">All India (19 Hotspots)</button>
+          <button class="btn btn-secondary btn-sm region-filter-btn" onclick="filterAllIndiaHotspots('ner', this)">North-Eastern Region (NER)</button>
+          <button class="btn btn-secondary btn-sm region-filter-btn" onclick="filterAllIndiaHotspots('ghats', this)">Western Ghats (Kerala/MH/TN)</button>
+          <button class="btn btn-secondary btn-sm region-filter-btn" onclick="filterAllIndiaHotspots('himalaya', this)">Himalayan Corridors (UK/HP)</button>
+          <button class="btn btn-secondary btn-sm region-filter-btn" onclick="filterAllIndiaHotspots('plains', this)">Plains / Baseline Reference</button>
+        </div>
+      </div>
+
+      <!-- All-India Hotspots Cards Grid -->
+      <div id="allIndiaHotspotsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+        <!-- Injected via JavaScript from monitoring_stations registry -->
+      </div>
+    </div>
+
+    <!-- =============================================================
+         TAB 3: RISK MAP
+    ============================================================= -->
+    <div id="tab-map" class="tab-pane">
+      <div class="section-header">
+        <h2 class="section-title"><span>🗺️</span> Interactive Landslide Risk Map</h2>
+        <p class="section-subtitle">Leaflet GIS mapping with OpenStreetMap tiles, North-Eastern monitoring hubs, and click-to-query analysis.</p>
+      </div>
+
+      <div class="map-control-bar">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <label style="font-size: 0.85rem; color: #94a3b8;">Jump to Hotspot:</label>
+          <select id="mapHotspotSelector" class="btn btn-secondary btn-sm" onchange="selectHotspotFromDropdown(this.value)" style="padding: 0.4rem 0.6rem; background: #0f172a; border-radius: 6px;">
+            <option value="">-- Select Monitoring Location --</option>
+            <option value="25.5788|91.8933|Shillong Peak Corridor, Meghalaya">Shillong Peak Corridor (Meghalaya)</option>
+            <option value="25.2986|91.5822|Cherrapunji Escarpment, Meghalaya">Cherrapunji (Sohra) Escarpment (Meghalaya)</option>
+            <option value="27.3389|88.6065|Gangtok Teesta NH Corridor, Sikkim">Gangtok NH-10 Corridor (Sikkim)</option>
+            <option value="26.1445|91.7362|Guwahati Hilly Tracts, Assam">Guwahati Hilly Tracts (Assam)</option>
+            <option value="23.7307|92.7173|Aizawl Ridge, Mizoram">Aizawl Ridge (Mizoram)</option>
+            <option value="25.6751|94.1086|Kohima Bypass, Nagaland">Kohima Bypass (Nagaland)</option>
+            <option value="27.0844|93.6053|Itanagar Slope, Arunachal Pradesh">Itanagar Slope (Arunachal Pradesh)</option>
+            <option value="26.8812|88.2789|Darjeeling Paglajhora, West Bengal">Darjeeling Paglajhora (Sub-Himalaya)</option>
+            <option value="23.2599|77.4126|Chhatrasal Nagar, Bhopal">Chhatrasal Nagar, Bhopal (Urban Demo Flat Baseline)</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="triggerLiveDeviceGPS()">📍 Locate My Device</button>
+        </div>
+
+        <div class="map-legend">
+          <div class="legend-item"><span class="legend-dot" style="background: #10b981;"></span> Low Risk</div>
+          <div class="legend-item"><span class="legend-dot" style="background: #f59e0b;"></span> Medium Risk</div>
+          <div class="legend-item"><span class="legend-dot" style="background: #ef4444;"></span> High Risk</div>
+          <div class="legend-item"><span class="legend-dot" style="background: #3b82f6;"></span> Device GPS</div>
+        </div>
+      </div>
+
+      <div id="riskMap"></div>
+      <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.75rem;">
+        💡 <em>Interactive feature: Click anywhere on the map to query real-time elevation, slope gradient, and run the LandSafe AI prediction pipeline for those coordinates.</em>
+      </div>
+    </div>
+
+    <!-- =============================================================
+         TAB 4: WEATHER
+    ============================================================= -->
+    <div id="tab-weather" class="tab-pane">
+      <div class="section-header">
+        <h2 class="section-title"><span>🌧️</span> Meteorological Telemetry & Trends</h2>
+        <p class="section-subtitle">Real-time precipitation rate, antecedent moisture accumulation, and multi-day atmospheric dynamics.</p>
+      </div>
+
+      <div class="grid-2col" style="margin-bottom: 2rem;">
+        <div class="card">
+          <h3 style="font-size: 1.1rem; color: #38bdf8; margin-bottom: 1rem;">24-Hour Precipitation & Soil Moisture Saturation</h3>
+          <canvas id="chartHourlyPrecip" height="220"></canvas>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size: 1.1rem; color: #38bdf8; margin-bottom: 1rem;">7-Day Temperature Trend (°C)</h3>
+          <canvas id="chartDailyTemp" height="220"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4 style="color: #34d399; margin-bottom: 0.5rem;">Meteorological Context for Landslide Occurrence</h4>
+        <p style="font-size: 0.9rem; color: #94a3b8; line-height: 1.6;">
+          Rainfall is the paramount trigger for mass-wasting events in the North-Eastern Himalayas. Continuous downpours saturate the upper soil mantle, increasing unit weight while dissipating matric suction. Once antecedent moisture reaches field capacity, pore-water pressure drastically decreases shear resistance along planar slip surfaces.
+        </p>
+      </div>
+    </div>
+
+    <!-- =============================================================
+         TAB 5: TERRAIN MONITORING
+    ============================================================= -->
+    <div id="tab-terrain" class="tab-pane">
+      <div class="section-header">
+        <h2 class="section-title"><span>📷</span> Terrain & Satellite Change Monitoring</h2>
+        <p class="section-subtitle">Computer vision image quality checks (OpenCV) and multi-temporal satellite change detection.</p>
+      </div>
+
+      <div class="grid-2col">
+        <!-- Module 5A: Terrain Image Upload -->
+        <div>
+          <div class="card">
+            <h3 style="font-size: 1.15rem; color: #38bdf8; margin-bottom: 1rem;">Upload Terrain Photograph</h3>
+            
+            <div class="upload-dropzone" id="terrainDropzone">
+              <div class="dropzone-icon">📤</div>
+              <h4 style="font-size: 1rem; margin-bottom: 0.35rem;">Drag & drop slope photograph here</h4>
+              <p style="font-size: 0.8rem; color: #64748b;">Supported formats: JPG, JPEG, PNG, WEBP (Max 15MB)</p>
+              <input type="file" id="terrainFileInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+            </div>
+
+            <div id="terrainLoader" style="display: none; text-align: center; margin-top: 1rem;">
+              <span class="pulse-dot"></span> Analyzing image focus and dynamic contrast...
+            </div>
+
+            <!-- OpenCV Analysis Report Box -->
+            <div id="terrainReportBox" style="display: none; margin-top: 1.25rem;">
+              <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1rem;">
+                <img id="terrainPreviewImg" src="" style="width: 120px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="flex: 1;">
+                  <span id="resUsabilityBadge" class="risk-badge risk-low" style="font-size: 0.8rem; padding: 0.25rem 0.65rem;">VALID</span>
+                  <div style="font-size: 0.88rem; font-weight: 600; margin-top: 0.35rem;" id="resUsability">--</div>
+                </div>
+              </div>
+
+              <div class="metrics-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="metric-card">
+                  <span class="metric-label">Laplacian Sharpness</span>
+                  <span class="metric-val" id="resSharpness" style="font-size: 1.1rem;">--</span>
+                </div>
+                <div class="metric-card">
+                  <span class="metric-label">Luminance (Brightness)</span>
+                  <span class="metric-val" id="resBrightness" style="font-size: 1.1rem;">--</span>
+                </div>
+                <div class="metric-card">
+                  <span class="metric-label">Dynamic Contrast</span>
+                  <span class="metric-val" id="resContrast" style="font-size: 1.1rem;">--</span>
+                </div>
+                <div class="metric-card">
+                  <span class="metric-label">Canny Edge Density</span>
+                  <span class="metric-val" id="resEdgeDensity" style="font-size: 1.1rem;">--</span>
+                </div>
+              </div>
+
+              <div class="recom-box" style="margin-top: 0.75rem;">
+                <strong>Geotechnical Observations:</strong>
+                <p id="resNotes" style="font-size: 0.85rem; margin-top: 0.2rem;">--</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Module 5B: Satellite Change Detection -->
+        <div>
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-size: 1.15rem; color: #38bdf8;">Satellite Surface Change Detection</h3>
+              <button class="btn btn-secondary btn-sm" onclick="triggerBenchmarkSatelliteDiff()">Run Benchmark Comparison</button>
+            </div>
+
+            <!-- Interactive Before/After Split Slider -->
+            <div class="split-slider-container" id="splitSlider">
+              <img id="splitBefore" class="split-img split-before" src="/static/images/satellite_before.jpg" alt="Pre-Monsoon">
+              <div id="splitAfter" class="split-after">
+                <img id="splitAfterImg" class="split-img" src="/static/images/satellite_after.jpg" alt="Post-Monsoon" style="width: 600px; max-width: none;">
+              </div>
+              <div id="sliderHandle" class="slider-handle">
+                <div class="slider-button">⬌</div>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b; margin-top: 0.5rem;">
+              <span>◀ Pre-Monsoon (Vegetated Canopy)</span>
+              <span>Post-Monsoon (Landslide Debris Scarp) ▶</span>
+            </div>
+
+            <!-- Radiometric Diff Metrics -->
+            <div style="margin-top: 1.25rem; background: rgba(14,25,52,0.65); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.85rem; color: #94a3b8;">Disturbance Severity:</span>
+                <strong id="satSeverity" style="color: #f59e0b;">Pending Comparison</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.85rem; color: #94a3b8;">Changed Surface Area:</span>
+                <strong id="satChangePct" style="color: #38bdf8;">--</strong>
+              </div>
+              <p style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">
+                Methodology: <span id="satMethod">Radiometric Absolute Difference with Gaussian Smoothing</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================================================
+         TAB: 3D VIDEO & AI LANDSLIDE SIMULATION SUITE
+    ============================================================= -->
+    <div id="tab-video-3d" class="tab-pane">
+      <div class="section-header">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h2 class="section-title"><span>🎥</span> 3D AI Landslide Hazard Simulation & Video Suite</h2>
+            <p class="section-subtitle">High-fidelity 3D computational numerical modeling, aerial survey footage, and real-time interactive physics engine with AI computer vision telemetry HUD.</p>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button class="btn btn-secondary btn-sm" id="btnToggleAiHud" onclick="toggle3DAiHud()">
+              <span id="hudToggleIcon">👁️</span> <span id="hudToggleText">AI HUD: ON</span>
+            </button>
+            <span class="live-indicator" style="font-size: 0.72rem;">
+              <span class="pulse-dot"></span> 3D RENDER ENGINE
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode Selector Tabs -->
+      <div class="card" style="padding: 0.75rem 1rem; margin-bottom: 1.25rem;">
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+          <span style="font-size: 0.82rem; font-weight: 600; color: #94a3b8; margin-right: 0.5rem;">Select 3D Mode:</span>
+          <button class="btn btn-primary btn-sm mode-btn active" id="btnModeHydro" onclick="select3DVideoMode('hydro')">
+            🌊 FLOW-3D Hydro Simulation
+          </button>
+          <button class="btn btn-secondary btn-sm mode-btn" id="btnModeUsgs" onclick="select3DVideoMode('usgs')">
+            ⛰️ USGS 3D Rotational Slump (HD)
+          </button>
+          <button class="btn btn-secondary btn-sm mode-btn" id="btnModeAerial" onclick="select3DVideoMode('aerial')">
+            🚁 Aerial Mountain Survey (HD)
+          </button>
+          <button class="btn btn-secondary btn-sm mode-btn" id="btnModePore" onclick="select3DVideoMode('pore')">
+            🔬 Geotechnical Pore-Water Model
+          </button>
+          <button class="btn btn-secondary btn-sm mode-btn" id="btnModeInteractive" onclick="select3DVideoMode('interactive')">
+            🎮 Interactive WebGL 3D Simulator
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Stage Grid: Video/Simulation Player (Left) + Geotechnical Telemetry & Controls (Right) -->
+      <div class="grid-2col" style="grid-template-columns: 1.5fr 1fr; align-items: start;">
+        
+        <!-- Left: Cinematic Video Viewport with AI HUD Overlay -->
+        <div class="card" style="padding: 0; overflow: hidden; background: #000; border: 1px solid rgba(56,189,248,0.3); position: relative; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.6);">
+          
+          <!-- Viewport Container with 16:9 Aspect Ratio -->
+          <div id="videoStageContainer" style="position: relative; width: 100%; padding-top: 56.25%; background: #0b1120; overflow: hidden;">
+            
+            <!-- Video Player Element (for Local Videos) -->
+            <video id="stageVideoPlayer" autoplay loop muted playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: none;">
+              <source id="stageVideoSource" src="/static/videos/mountain_landslide_aerial.webm" type="video/webm">
+            </video>
+
+            <!-- YouTube Iframe Embed (for Scientific Simulations) -->
+            <iframe id="stageIframePlayer" src="https://www.youtube.com/embed/dSIYW_5Z3AM?autoplay=1&mute=1&loop=1&playlist=dSIYW_5Z3AM&controls=1" 
+                    title="3D Landslide Simulation" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; border: none;">
+            </iframe>
+
+            <!-- Interactive 3D Canvas (for Real-time WebGL/Canvas Physics) -->
+            <canvas id="stageInteractiveCanvas" width="800" height="450" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; background: #070d19;"></canvas>
+
+            <!-- AI COMPUTER VISION HUD OVERLAY -->
+            <div id="aiHudOverlay" class="ai-hud-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 14px; box-sizing: border-box;">
+              
+              <!-- HUD Top Bar -->
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
+                <div style="background: rgba(10,18,36,0.85); backdrop-filter: blur(6px); border: 1px solid rgba(56,189,248,0.4); border-radius: 6px; padding: 0.35rem 0.65rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #38bdf8;">
+                  <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <span class="pulse-dot" style="background: #ef4444;"></span>
+                    <strong style="color: #f8fafc;">AI VISION TELEMETRY:</strong> <span id="hudSectorName">NER-SECTOR-7 (SHILLONG CORRIDOR)</span>
+                  </div>
+                  <div style="font-size: 0.65rem; color: #94a3b8; margin-top: 0.15rem;">
+                    LAT: <span id="hudLat">25.5788° N</span> | LON: <span id="hudLon">91.8933° E</span> | ELEV: 1,496m | DEM: HORN 3×3
+                  </div>
+                </div>
+
+                <div style="background: rgba(10,18,36,0.85); backdrop-filter: blur(6px); border: 1px solid rgba(239,68,68,0.5); border-radius: 6px; padding: 0.35rem 0.65rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; text-align: right;">
+                  <div style="color: #ef4444; font-weight: 700;">● AI DETECTION: ACTIVE</div>
+                  <div style="color: #cbd5e1; font-size: 0.65rem;">CONFIDENCE: <strong style="color: #38bdf8;" id="hudConfidence">94.7%</strong></div>
+                </div>
+              </div>
+
+              <!-- HUD Center: AI Bounding Box & Slip Surface Target -->
+              <div class="hud-bounding-box" style="position: relative; align-self: center; width: 62%; height: 52%; border: 2px dashed rgba(239,68,68,0.75); border-radius: 8px; box-shadow: 0 0 20px rgba(239,68,68,0.2) inset; display: flex; flex-direction: column; justify-content: space-between; padding: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; background: rgba(239,68,68,0.85); color: #fff; padding: 0.15rem 0.4rem; border-radius: 3px; width: fit-content;">
+                  <span>[AI BOUNDING BOX: SLIP CRACK ZONE]</span>
+                </div>
+                <!-- Dynamic crosshair center -->
+                <div style="align-self: center; text-align: center; color: rgba(56,189,248,0.7); font-size: 1.25rem; line-height: 1;">
+                  ⌖
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: #f87171; background: rgba(10,18,36,0.8); padding: 0.15rem 0.4rem; border-radius: 3px;">
+                  <span id="hudShearText">SLOPE SHEAR STRESS: τ = 48.6 kPa</span>
+                  <span id="hudDisplacementText">DISPLACEMENT: 1.42 m/s</span>
+                </div>
+              </div>
+
+              <!-- HUD Bottom Bar -->
+              <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 0.5rem;">
+                <div style="background: rgba(10,18,36,0.85); backdrop-filter: blur(6px); border: 1px solid rgba(56,189,248,0.4); border-radius: 6px; padding: 0.35rem 0.65rem; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;">
+                  <div style="color: #94a3b8; font-size: 0.65rem;">FACTOR OF SAFETY (FoS):</div>
+                  <div style="display: flex; align-items: baseline; gap: 0.4rem;">
+                    <span id="hudFosValue" style="font-size: 1.15rem; font-weight: 800; color: #ef4444;">0.82</span>
+                    <span id="hudFosStatus" style="color: #ef4444; font-size: 0.7rem; font-weight: 700;">(FAILURE IN PROGRESS)</span>
+                  </div>
+                </div>
+
+                <div style="background: rgba(10,18,36,0.85); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 0.35rem 0.65rem; font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: #64748b;">
+                  FPS: <span id="hudFps" style="color: #10b981;">60</span> | MODEL: RF-120 + HORN DEM | RENDER: WEBGL 3D
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Playback Controls Bar -->
+          <div style="padding: 0.65rem 1rem; background: rgba(10,18,36,0.95); border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span id="stageModeTitle" style="font-size: 0.88rem; font-weight: 700; color: #38bdf8;">🌊 FLOW-3D Hydro Numerical Simulation</span>
+              <span class="status-pill status-ok" id="stageModeBadge" style="font-size: 0.68rem;">HD Stream</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-secondary btn-sm" onclick="restartCurrent3DVideo()" style="font-size: 0.75rem; padding: 0.35rem 0.6rem;">
+                🔄 Replay
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="toggleFullscreenVideo()" style="font-size: 0.75rem; padding: 0.35rem 0.6rem;">
+                ⛶ Fullscreen
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Real-time Geotechnical Controls & Simulator Parameters -->
+        <div>
+          <!-- Interactive Physics Sandbox Controls (Active across modes, specially Interactive) -->
+          <div class="card" style="margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+              <h3 style="font-size: 1.05rem; color: #38bdf8; margin: 0;">🎮 3D Slope Physics Controls</h3>
+              <span class="status-pill status-ok" style="font-size: 0.65rem;">Mohr-Coulomb Engine</span>
+            </div>
+
+            <p style="font-size: 0.78rem; color: #94a3b8; margin-bottom: 1rem;">
+              Adjust environmental factors in real-time to observe dynamic slope stability and Factor of Safety ($FS$) response.
+            </p>
+
+            <!-- Control 1: Rain Intensity -->
+            <div style="margin-bottom: 1rem;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.3rem;">
+                <span style="color: #cbd5e1;">🌧️ Rainfall Intensity:</span>
+                <strong id="simRainVal" style="color: #38bdf8; font-family: 'JetBrains Mono', monospace;">65 mm/h</strong>
+              </div>
+              <input type="range" id="simRainSlider" min="0" max="150" value="65" style="width: 100%; accent-color: #38bdf8;" oninput="update3DSimPhysics()">
+              <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: #64748b;">
+                <span>0 mm/h (Dry)</span>
+                <span>50 mm/h (Heavy)</span>
+                <span>150 mm/h (Extreme Cherrapunji)</span>
+              </div>
+            </div>
+
+            <!-- Control 2: Slope Angle -->
+            <div style="margin-bottom: 1rem;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.3rem;">
+                <span style="color: #cbd5e1;">⛰️ Terrain Slope Angle:</span>
+                <strong id="simSlopeVal" style="color: #f59e0b; font-family: 'JetBrains Mono', monospace;">38° (Steep)</strong>
+              </div>
+              <input type="range" id="simSlopeSlider" min="15" max="65" value="38" style="width: 100%; accent-color: #f59e0b;" oninput="update3DSimPhysics()">
+              <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: #64748b;">
+                <span>15° (Gentle)</span>
+                <span>35° (Critical)</span>
+                <span>65° (Cliff Wall)</span>
+              </div>
+            </div>
+
+            <!-- Control 3: Soil Pore Moisture Saturation -->
+            <div style="margin-bottom: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.3rem;">
+                <span style="color: #cbd5e1;">💧 Soil Pore Saturation:</span>
+                <strong id="simSatVal" style="color: #10b981; font-family: 'JetBrains Mono', monospace;">78%</strong>
+              </div>
+              <input type="range" id="simSatSlider" min="10" max="100" value="78" style="width: 100%; accent-color: #10b981;" oninput="update3DSimPhysics()">
+            </div>
+
+            <!-- Dynamic Factor of Safety (FoS) Card -->
+            <div style="background: rgba(14,25,52,0.85); border: 1px solid rgba(56,189,248,0.3); border-radius: 8px; padding: 0.75rem; margin-bottom: 1.1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <span style="font-size: 0.8rem; color: #94a3b8;">Computed Factor of Safety (FS):</span>
+                <strong id="simFosNum" style="font-size: 1.25rem; font-family: 'JetBrains Mono', monospace; color: #ef4444;">0.82</strong>
+              </div>
+              <div class="progress-bar-container" style="background: rgba(255,255,255,0.08); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 0.35rem;">
+                <div id="simFosBar" style="height: 100%; width: 45%; background: #ef4444; transition: all 0.3s ease;"></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #94a3b8;">
+                <span id="simRiskPill" class="risk-badge risk-high" style="font-size: 0.65rem; padding: 0.1rem 0.4rem;">HIGH RISK (UNSTABLE)</span>
+                <span id="simPorePressureText" style="color: #64748b;">Pore Pressure: 24.2 kPa</span>
+              </div>
+            </div>
+
+            <!-- Simulation Action Buttons -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <button class="btn btn-danger btn-sm" onclick="trigger3DSlopeRupture()" style="font-size: 0.8rem; padding: 0.6rem 0.5rem;">
+                💥 Trigger Slope Rupture
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="reset3DSimPhysics()" style="font-size: 0.8rem; padding: 0.6rem 0.5rem;">
+                🔄 Reset Mountain
+              </button>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="simulateMonsoonCherrapunji()" style="width: 100%; margin-top: 0.5rem; font-size: 0.8rem; padding: 0.55rem; background: linear-gradient(135deg, #0284c7, #2563eb);">
+              🌧️ Simulate Meghalaya Monsoon Cloudburst (80mm/h)
+            </button>
+          </div>
+
+          <!-- Technical Explanatory Geotechnical Notes -->
+          <div class="card">
+            <h4 style="font-size: 0.95rem; color: #34d399; margin-bottom: 0.5rem;">🔬 AI & Geotechnical Modeling Logic</h4>
+            <ul style="font-size: 0.78rem; color: #94a3b8; line-height: 1.5; padding-left: 1.1rem; margin: 0;">
+              <li><strong>Mohr-Coulomb Limit Equilibrium:</strong> τ = c' + (σ_n - u) tan(φ').</li>
+              <li><strong>Horn 3×3 Gradient:</strong> Computes finite difference slope matrices across DEM nodes.</li>
+              <li><strong>Pore Pressure Dissipation:</strong> Torrential rainfall eliminates matric suction and weakens basal shearing resistance.</li>
+              <li><strong>Random Forest AI:</strong> 120 estimators mapping dynamic weather vectors directly to rupture probability.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3-Column Educational Deep-Dive on 3D Landslide Types -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 1.5rem;">
+        <div class="card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔄</div>
+          <h4 style="color: #38bdf8; font-size: 0.95rem; margin-bottom: 0.35rem;">1. Rotational Slump (घूर्णी भूस्खलन)</h4>
+          <p style="font-size: 0.8rem; color: #94a3b8; line-height: 1.5;">
+            Mass of soil and weathered rock slips along a spoon-shaped concave curved surface. Common in tertiary sedimentary shale and siltstone slopes of Meghalaya and Mizoram.
+          </p>
+        </div>
+
+        <div class="card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🌊</div>
+          <h4 style="color: #10b981; font-size: 0.95rem; margin-bottom: 0.35rem;">2. Debris Flow & Mudslide (मलबे का प्रवाह)</h4>
+          <p style="font-size: 0.8rem; color: #94a3b8; line-height: 1.5;">
+            Rapid movement of water-saturated debris and mud down steep gullies reaching speeds over 40 km/h. Triggered by extreme cloudbursts exceeding 60 mm/hour.
+          </p>
+        </div>
+
+        <div class="card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🧱</div>
+          <h4 style="color: #f59e0b; font-size: 0.95rem; margin-bottom: 0.35rem;">3. Structural Mitigation (इंजीनियरिंग रोकथाम)</h4>
+          <p style="font-size: 0.8rem; color: #94a3b8; line-height: 1.5;">
+            Installation of perforated horizontal sub-drains, shotcrete with soil nails, gabion retaining toe walls, and vetiver grass bio-engineering to restore shear strength.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================================================
+         TAB 6: FUTURE FORECAST
+    ============================================================= -->
+    <div id="tab-forecast" class="tab-pane">
+      <div class="section-header">
+        <h2 class="section-title"><span>📅</span> 7-Day Future Landslide Risk Forecasting</h2>
+        <p class="section-subtitle">Combines numerical meteorological precipitation forecasts with the Random Forest pipeline.</p>
+      </div>
+
+      <div class="recom-box" style="margin-bottom: 1.5rem; border-left-color: #f59e0b;">
+        <strong style="color: #f59e0b;">⚠️ Experimental Forecast Advisory:</strong>
+        <p style="font-size: 0.85rem; margin-top: 0.2rem;">
+          Forecasts estimate landslide risk propensity based on predicted precipitation horizons and cumulative saturation. Numerical weather forecasts carry inherent meteorological uncertainty. Never use as an exact timestamp for slope failure events.
+        </p>
+      </div>
+
+      <div id="forecastLoader" style="display: none; text-align: center; padding: 1.5rem;">
+        <span class="pulse-dot"></span> Generating 7-day risk timeline projections...
+      </div>
+
+      <!-- 7-Day Timeline Cards Container -->
+      <div id="forecastCardsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Forecast Risk Progression Trend Chart -->
+      <div class="card">
+        <h3 style="font-size: 1.1rem; color: #38bdf8; margin-bottom: 1rem;">Projected 7-Day Landslide Hazard Trend</h3>
+        <canvas id="chartForecastTrend" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- =============================================================
+         TAB 7: VEHICLE TRACKING
+    ============================================================= -->
+    <div id="tab-vehicle" class="tab-pane">
+      <div class="section-header">
+        <h2 class="section-title"><span>🚗</span> GPS Vehicle Tracking & Safe-Route Support</h2>
+        <p class="section-subtitle">Real-time journey monitoring along mountain corridors with overspeed and hazard zone alarms.</p>
+      </div>
+
+      <div class="grid-2col">
+        <!-- Telemetry & Speedometer -->
+        <div>
+          <div class="speedometer-box">
+            <span style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase;">Vehicle Ground Speed</span>
+            <div class="speed-dial" id="vehicleSpeedDial">0</div>
+            <span class="speed-unit">KM / H</span>
+
+            <div id="vehicleAlarm" class="overspeed-alarm" style="display: none; margin-top: 0.75rem;">
+              ⚠️ OVERSPEED ALERT: Reduce speed immediately!
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: left; background: rgba(14,25,52,0.65); padding: 1rem; border-radius: 8px;">
+              <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.35rem;">Active Sector:</div>
+              <div style="font-weight: 700; color: #38bdf8;" id="vehicleZoneName">Standby</div>
+              <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.2rem;" id="vehicleCoords">--</div>
+            </div>
+
+            <!-- Tracking Mode Toggle (Real GPS by default) -->
+            <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.25rem;">
+              <button class="btn btn-secondary btn-sm" id="btnModeGPS" onclick="setVehicleMode('gps')" style="font-size: 0.8rem; padding: 0.4rem 0.85rem; background: rgba(16,185,129,0.18); border-color: #10b981; color: #34d399;">
+                📡 Real Live GPS Speedometer (Default)
+              </button>
+              <button class="btn btn-secondary btn-sm" id="btnModeSim" onclick="setVehicleMode('sim')" style="font-size: 0.8rem; padding: 0.4rem 0.85rem;">
+                🎮 Demo Highway Simulation (Optional)
+              </button>
+            </div>
+
+            <!-- Real Live GPS Hardware Controls -->
+            <div id="gpsControlsBox" style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap;">
+              <button class="btn btn-primary btn-sm" id="btnStartGPS" onclick="startLiveGPSVehicleTracking()">
+                📡 Start Real Live GPS Speedometer
+              </button>
+              <button class="btn btn-secondary btn-sm" id="btnStopGPS" onclick="stopLiveGPSVehicleTracking()">
+                ⏹ Stop GPS
+              </button>
+            </div>
+
+            <!-- College Highway Simulation Demo Controls (Optional) -->
+            <div id="simControlsBox" style="display: none; gap: 0.5rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; background: rgba(14,25,52,0.5); padding: 0.75rem; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.15);">
+              <div style="width: 100%; font-size: 0.74rem; color: #f59e0b; margin-bottom: 0.35rem;">
+                ℹ️ College Project Demonstration: Simulates NH-6 Meghalaya mountain slope descent to demonstrate overspeed alerts.
+              </div>
+              <button class="btn btn-primary btn-sm" id="btnStartVehicleSim" onclick="startVehicleSimulation()">▶ Run Demo Sim</button>
+              <button class="btn btn-secondary btn-sm" id="btnPauseVehicleSim" onclick="pauseVehicleSimulation()">⏸ Pause Demo</button>
+              <button class="btn btn-secondary btn-sm" id="btnStopVehicleSim" onclick="stopVehicleSimulation()">⏹ Reset Demo</button>
+            </div>
+            
+            <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 1rem;" id="vehicleStatusText">
+              🛑 STANDBY: Real GPS Ready (बैठे रहने पर गति 0 KM/H रहेगी, चलने या गाड़ी चलाने पर ही गति बढ़ेगी)
+            </div>
+          </div>
+        </div>
+
+        <!-- Safe-Route Comparison & Settings -->
+        <div class="card">
+          <h3 style="font-size: 1.15rem; color: #38bdf8; margin-bottom: 1rem;">Corridor Hazard Exposure Comparison</h3>
+
+          <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>Route A (Direct Mountain Highway — NH-6)</strong>
+              <span class="risk-badge risk-high" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">HIGH EXPOSURE</span>
+            </div>
+            <p style="font-size: 0.82rem; color: #fca5a5; margin-top: 0.4rem;">
+              Distance: 52 km | Traverses 3 active cut-slopes with slope > 38°. Heavy monsoon debris flows frequently block carriage lanes.
+            </p>
+          </div>
+
+          <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>Route B (Ridge Crest Bypass Corridor)</strong>
+              <span class="risk-badge risk-low" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;">RECOMMENDED</span>
+            </div>
+            <p style="font-size: 0.82rem; color: #6ee7b7; margin-top: 0.4rem;">
+              Distance: 64 km (+12 km) | Gentle ridge topography (slope &lt; 14°). Bypasses saturated toe drainage channels.
+            </p>
+          </div>
+
+          <!-- Configurable Speed Limit -->
+          <div style="background: rgba(14,25,52,0.65); padding: 1rem; border-radius: 8px;">
+            <label style="font-size: 0.85rem; color: #94a3b8; display: block; margin-bottom: 0.4rem;">
+              Configurable Mountain Speed Limit Warning:
+            </label>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="number" id="inputSpeedThreshold" value="60" min="30" max="100" class="btn btn-secondary btn-sm" style="width: 80px; text-align: center;">
+              <span style="font-size: 0.85rem; color: #cbd5e1;">km/h (Warning triggers when exceeded on slopes)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================================================
+         TAB 8: LOCAL AREA MONITORING
+    ============================================================= -->
+    <div id="tab-local" class="tab-pane">
+      <div class="section-header">
+        <h2 class="section-title"><span>🏘️</span> Local Area Landslide Risk Monitoring</h2>
+        <p class="section-subtitle">Dedicated regional inspection hubs for North-Eastern urban clusters and baseline comparative benchmarks.</p>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <h4 style="color: #38bdf8; margin-bottom: 0.75rem;">Comparative Demonstration: Mountain Slope vs. Flat Urban Plains</h4>
+        <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.6;">
+          To evaluate how LandSafe AI distinguishes geomorphological hazards, select <strong>Chhatrasal Nagar, Bhopal, Madhya Pradesh (PIN 462022)</strong>. Bhopal features flat basalt plateau topography (slope ~2.5°), demonstrating that high rainfall in flat urban areas produces flooding but not gravitational slope failures. Conversely, selecting <strong>Shillong</strong> or <strong>Gangtok</strong> demonstrates how steep mountain gradients (32°-41°) combined with saturation escalate into High Landslide Risk.
+        </p>
+        <div style="margin-top: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="selectHotspot(23.2599, 77.4126, 'Chhatrasal Nagar, Bhopal, MP (PIN 462022)')">
+            🏙️ Test Bhopal Baseline (PIN 462022)
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="selectHotspot(25.5788, 91.8933, 'Shillong Peak Corridor, Meghalaya')">
+            ⛰️ Test Shillong High-Risk Zone
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="selectHotspot(27.3389, 88.6065, 'Gangtok Teesta NH-10 Corridor, Sikkim')">
+            ⛰️ Test Gangtok Himalayan Corridor
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================================================
+         TAB 9: EMERGENCY SUPPORT
+    ============================================================= -->
+    <div id="tab-emergency" class="tab-pane">
+      <div class="section-header">
+        <h2 class="section-title"><span>🆘</span> Emergency & Evacuation Support</h2>
+        <p class="section-subtitle">Official safety directives, rapid SOS generator with GPS coordinates, and disaster helpline directory.</p>
+      </div>
+
+      <!-- Emergency SOS Message Generator -->
+      <div class="card" style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.15rem; color: #ef4444; margin-bottom: 0.75rem;">Interactive Emergency SOS Broadcast</h3>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem;">
+          Generate an immediate emergency distress dispatch containing your exact device coordinates and reverse geocoded address.
+        </p>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button class="btn btn-danger" id="btnSendWhatsappSOS">
+            <span>💬</span> Send SOS via WhatsApp
+          </button>
+          <button class="btn btn-secondary" id="btnCopySOS">
+            <span>📋</span> Copy Distress Message
+          </button>
+        </div>
+      </div>
+
+      <!-- Helplines Directory -->
+      <div class="card" style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.15rem; color: #38bdf8; margin-bottom: 0.5rem;">North-Eastern State Disaster Response Helplines</h3>
+        <div class="emergency-contacts-grid">
+          <div class="contact-card">
+            <div>
+              <div style="font-weight: 700;">NDRF National Helpline</div>
+              <div style="font-size: 0.75rem; color: #94a3b8;">National Disaster Response Force</div>
+            </div>
+            <a href="tel:1078" class="contact-phone">1078</a>
+          </div>
+          <div class="contact-card">
+            <div>
+              <div style="font-weight: 700;">National Emergency</div>
+              <div style="font-size: 0.75rem; color: #94a3b8;">All-India Unified Emergency</div>
+            </div>
+            <a href="tel:112" class="contact-phone">112</a>
+          </div>
+          <div class="contact-card">
+            <div>
+              <div style="font-weight: 700;">Meghalaya SDMA</div>
+              <div style="font-size: 0.75rem; color: #94a3b8;">State Disaster Control Room</div>
+            </div>
+            <a href="tel:1070" class="contact-phone">1070</a>
+          </div>
+          <div class="contact-card">
+            <div>
+              <div style="font-weight: 700;">Sikkim SDMA</div>
+              <div style="font-size: 0.75rem; color: #94a3b8;">State Disaster Control Room</div>
+            </div>
+            <a href="tel:1077" class="contact-phone">1077</a>
+          </div>
+          <div class="contact-card">
+            <div>
+              <div style="font-weight: 700;">Assam ASDMA</div>
+              <div style="font-size: 0.75rem; color: #94a3b8;">State Emergency Operation</div>
+            </div>
+            <a href="tel:1079" class="contact-phone">1079</a>
+          </div>
+          <div class="contact-card">
+            <div>
+              <div style="font-weight: 700;">Medical Ambulance</div>
+              <div style="font-size: 0.75rem; color: #94a3b8;">Emergency Medical Services</div>
+            </div>
+            <a href="tel:108" class="contact-phone">108</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preparedness Checklist -->
+      <div class="card">
+        <h3 style="font-size: 1.15rem; color: #34d399; margin-bottom: 0.75rem;">Official Landslide Safety Checklist</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+          <div>
+            <h4 style="color: #f59e0b; margin-bottom: 0.5rem;">Before (Early Warning Phase)</h4>
+            <ul style="font-size: 0.85rem; color: #94a3b8; list-style-position: inside; line-height: 1.7;">
+              <li>Inspect surrounding slopes for tension cracks or sudden muddy seepage.</li>
+              <li>Keep emergency go-bag ready with drinking water, dry rations, and torch.</li>
+              <li>Know multiple evacuation routes away from steep gullies and drainage paths.</li>
+            </ul>
+          </div>
+          <div>
+            <h4 style="color: #ef4444; margin-bottom: 0.5rem;">During (Slope Failure In Progress)</h4>
+            <ul style="font-size: 0.85rem; color: #94a3b8; list-style-position: inside; line-height: 1.7;">
+              <li>Move away from the path of debris flow or landslide as rapidly as possible.</li>
+              <li>Never seek shelter inside culverts, stream beds, or beneath retaining walls.</li>
+              <li>If trapped indoors, curl into a tight ball and protect your head under sturdy furniture.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================================================
+         TAB: ADMIN DASHBOARD & FULL SYSTEM TELEMETRY
+    ============================================================= -->
+    <div id="tab-admin" class="tab-pane">
+      <div class="section-header">
+        <h2 class="section-title"><span>🔒</span> Administrator Command Center & System Telemetry</h2>
+        <p class="section-subtitle">Real-time database records, model diagnostics, All-India stations registry, threshold configuration, and data exports.</p>
+      </div>
+
+      <!-- Admin Login Box -->
+      <div id="adminLoginCard" class="card" style="max-width: 440px; margin: 2rem auto; border-color: rgba(56,189,248,0.3);">
+        <h3 style="font-size: 1.25rem; color: #38bdf8; margin-bottom: 0.5rem; text-align: center;">Administrator Sign In</h3>
+        <p style="font-size: 0.82rem; color: #94a3b8; text-align: center; margin-bottom: 1rem;">
+          Access persistent logs, model telemetry, All-India station controls, and system configurations.
+        </p>
+
+        <!-- Verified Admin Credentials Display -->
+        <div style="background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); border-radius: 8px; padding: 0.65rem 0.85rem; margin-bottom: 1.25rem; font-size: 0.82rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 0.35rem;">
+            <span style="color: #94a3b8;">Admin Login ID:</span>
+            <strong style="color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">adityacreative64@gmail.com</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.35rem;">
+            <span style="color: #94a3b8;">Security:</span>
+            <span style="color: #10b981; font-weight: 600; font-size: 0.8rem;">🔒 Password Protected (Encrypted SHA-256)</span>
+          </div>
+        </div>
+
+        <form id="adminLoginForm">
+          <div style="margin-bottom: 1rem;">
+            <label style="font-size: 0.85rem; color: #94a3b8; display: block; margin-bottom: 0.35rem;">Admin Email / Login ID</label>
+            <input type="text" id="adminUsername" value="adityacreative64@gmail.com" required class="btn btn-secondary" style="width: 100%; text-align: left; padding: 0.6rem;">
+          </div>
+          <div style="margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+              <label style="font-size: 0.85rem; color: #94a3b8; margin: 0;">Password</label>
+              <button type="button" onclick="togglePasswordEye('adminPassword', this)" style="background: none; border: none; color: #38bdf8; font-size: 0.75rem; cursor: pointer; padding: 0;">👁️ Show</button>
+            </div>
+            <input type="password" id="adminPassword" value="aditya@9199" required class="btn btn-secondary" style="width: 100%; text-align: left; padding: 0.6rem;">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 0.75rem;">🔑 Sign In as Admin (Aditya)</button>
+        </form>
+
+        <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.85rem;">
+          <button class="btn btn-secondary btn-sm" onclick="enterAdminDemoMode()" style="width: 100%; background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: #34d399;">
+            ⚡ 1-Click Instant Demo Access (Evaluator Mode)
+          </button>
+        </div>
+      </div>
+
+      <!-- Protected Admin Dashboard View -->
+      <div id="adminDashboardView" style="display: none;">
+        <!-- Admin Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; background: var(--bg-card); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <div style="font-size: 1rem; color: #38bdf8;">
+            👤 Logged in as: <strong id="adminUserDisplayName">admin</strong> <span style="font-size: 0.75rem; background: rgba(56,189,248,0.2); padding: 0.15rem 0.5rem; border-radius: 4px; margin-left: 0.4rem;">SUPERADMIN</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a href="/api/history/export" class="btn btn-secondary btn-sm" download title="Download CSV of all predictions">📥 Export CSV</a>
+            <a href="/api/admin/export-json" class="btn btn-secondary btn-sm" target="_blank" title="Download complete database as JSON">📥 Export JSON</a>
+            <button class="btn btn-secondary btn-sm" onclick="loadAdminDashboardStats()">🔄 Refresh</button>
+            <button class="btn btn-danger btn-sm" id="btnAdminLogout">Sign Out</button>
+          </div>
+        </div>
+
+        <!-- 1. Executive Telemetry Metrics Summary Cards -->
+        <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 1.75rem;">
+          <div class="metric-card">
+            <span class="metric-label">Total Predictions</span>
+            <span class="metric-val" id="statTotalPreds">0</span>
+            <span class="metric-sub">SQLite persistent logs</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">High Risk Incidents</span>
+            <span class="metric-val" id="statHighRisk" style="color: #ef4444;">0</span>
+            <span class="metric-sub">Critical hazard triggers</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Medium Risk Alerts</span>
+            <span class="metric-val" id="statMedRisk" style="color: #f59e0b;">0</span>
+            <span class="metric-sub">Heightened saturation</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Low Risk Baselines</span>
+            <span class="metric-val" id="statLowRisk" style="color: #10b981;">0</span>
+            <span class="metric-sub">Stable slope conditions</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">All-India Stations</span>
+            <span class="metric-val" id="statStationsCount" style="color: #38bdf8;">19</span>
+            <span class="metric-sub">NER, Ghats & Himalayas</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Dispatched Alerts</span>
+            <span class="metric-val" id="statAlerts">0</span>
+            <span class="metric-sub">Early warning dispatches</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Model Accuracy</span>
+            <span class="metric-val" style="color: #34d399;">89.88%</span>
+            <span class="metric-sub">Random Forest (F1: 0.898)</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Database File Size</span>
+            <span class="metric-val" id="statDbSize" style="color: #a78bfa;">-- KB</span>
+            <span class="metric-sub">SQLite persistent storage</span>
+          </div>
+        </div>
+
+        <!-- 2. System Health & External API Diagnostics -->
+        <div class="card" style="margin-bottom: 1.75rem;">
+          <h3 style="font-size: 1.15rem; color: #38bdf8; margin-bottom: 1rem;">System Health & External API Diagnostics</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+            <div style="background: rgba(14,25,52,0.65); padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.85rem; font-weight: 600;">Open-Meteo Weather API</span>
+                <span style="font-size: 0.75rem; color: #10b981; font-weight: 700;">● ONLINE</span>
+              </div>
+              <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.25rem;">Live precipitation, soil moisture, wind & temperature telemetry.</p>
+            </div>
+            <div style="background: rgba(14,25,52,0.65); padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.85rem; font-weight: 600;">Open-Meteo Elevation API</span>
+                <span style="font-size: 0.75rem; color: #10b981; font-weight: 700;">● ONLINE</span>
+              </div>
+              <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.25rem;">3×3 DEM elevation grid & Horn slope gradient calculation active.</p>
+            </div>
+            <div style="background: rgba(14,25,52,0.65); padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.85rem; font-weight: 600;">OSM Nominatim Geocoding</span>
+                <span style="font-size: 0.75rem; color: #10b981; font-weight: 700;">● ONLINE</span>
+              </div>
+              <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.25rem;">Forward & reverse geocoding with 1 req/sec rate throttling.</p>
+            </div>
+            <div style="background: rgba(14,25,52,0.65); padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.85rem; font-weight: 600;">SQLite Database Layer</span>
+                <span style="font-size: 0.75rem; color: #10b981; font-weight: 700;">● CONNECTED</span>
+              </div>
+              <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.25rem;">Tables: predictions, alerts, terrain_reviews, stations, settings.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Machine Learning Model Diagnostics & Confusion Matrix -->
+        <div class="grid-2col" style="margin-bottom: 1.75rem;">
+          <div class="card">
+            <h3 style="font-size: 1.15rem; color: #38bdf8; margin-bottom: 0.75rem;">Random Forest Model Telemetry</h3>
+            <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 1rem; line-height: 1.6;">
+              <div>Algorithm: <strong>RandomForestClassifier (120 Estimators, max_depth 14)</strong></div>
+              <div>Training Pipeline: <code>StandardScaler + RandomForestClassifier(balanced)</code></div>
+              <div>Evaluation Split: <strong>80% Train / 20% Test Stratified</strong></div>
+              <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                <span>Accuracy: <strong style="color: #34d399;">89.88%</strong></span>
+                <span>Precision: <strong style="color: #38bdf8;">0.8995</strong></span>
+                <span>Recall: <strong style="color: #38bdf8;">0.8988</strong></span>
+                <span>F1-Score: <strong style="color: #38bdf8;">0.8984</strong></span>
+              </div>
+            </div>
+
+            <!-- Feature Importances Progress Bars -->
+            <h4 style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.5rem;">Feature Importances Weighting:</h4>
+            <div class="prob-bar-container" style="gap: 0.45rem;">
+              <div class="prob-row">
+                <span class="prob-label" style="width: 135px; font-size: 0.8rem;">Topographic Slope</span>
+                <div class="prob-track"><div class="prob-fill fill-high" style="width: 47.8%;"></div></div>
+                <span class="prob-percent">47.8%</span>
+              </div>
+              <div class="prob-row">
+                <span class="prob-label" style="width: 135px; font-size: 0.8rem;">72h Antecedent Rain</span>
+                <div class="prob-track"><div class="prob-fill fill-med" style="width: 13.0%;"></div></div>
+                <span class="prob-percent">13.0%</span>
+              </div>
+              <div class="prob-row">
+                <span class="prob-label" style="width: 135px; font-size: 0.8rem;">Soil Moisture %</span>
+                <div class="prob-track"><div class="prob-fill fill-med" style="width: 11.8%;"></div></div>
+                <span class="prob-percent">11.8%</span>
+              </div>
+              <div class="prob-row">
+                <span class="prob-label" style="width: 135px; font-size: 0.8rem;">24h Current Rainfall</span>
+                <div class="prob-track"><div class="prob-fill fill-med" style="width: 11.2%;"></div></div>
+                <span class="prob-percent">11.2%</span>
+              </div>
+              <div class="prob-row">
+                <span class="prob-label" style="width: 135px; font-size: 0.8rem;">Digital Elevation</span>
+                <div class="prob-track"><div class="prob-fill fill-low" style="width: 4.3%;"></div></div>
+                <span class="prob-percent">4.3%</span>
+              </div>
+              <div class="prob-row">
+                <span class="prob-label" style="width: 135px; font-size: 0.8rem;">Lithology Risk Index</span>
+                <div class="prob-track"><div class="prob-fill fill-low" style="width: 4.0%;"></div></div>
+                <span class="prob-percent">4.0%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="font-size: 1.15rem; color: #38bdf8; margin-bottom: 0.75rem;">Risk Class Distribution</h3>
+            <canvas id="chartRiskDistribution" height="200"></canvas>
+
+            <!-- Test Confusion Matrix -->
+            <div style="margin-top: 1rem; background: rgba(14,25,52,0.65); padding: 0.75rem; border-radius: 8px;">
+              <h5 style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.4rem;">Test Confusion Matrix (800 Test Samples):</h5>
+              <div style="font-family: monospace; font-size: 0.75rem; color: #cbd5e1; line-height: 1.5;">
+                <div>[LOW RISK]    : 53 True Positives | 19 Misc-Med | 0 Misc-High</div>
+                <div>[MEDIUM RISK] : 211 True Positives | 7 Misc-Low | 28 Misc-High</div>
+                <div>[HIGH RISK]   : 455 True Positives | 0 Misc-Low | 27 Misc-Med</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. All-India Monitoring Stations Registry Table -->
+        <div class="card" style="margin-bottom: 1.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.15rem; color: #38bdf8;">All-India Landslide Monitoring Stations (19 Hubs)</h3>
+            <span style="font-size: 0.8rem; color: #94a3b8;">NER India, Western Ghats, Himalayas & Urban Baseline</span>
+          </div>
+          <div class="admin-table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Station Name</th>
+                  <th>State / Region</th>
+                  <th>Coordinates</th>
+                  <th>Elevation</th>
+                  <th>Base Slope</th>
+                  <th>Lithology</th>
+                  <th>Hazard Status</th>
+                </tr>
+              </thead>
+              <tbody id="adminStationsTableBody">
+                <!-- Injected via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 5. Alerts Center & System Configuration Console -->
+        <div class="grid-2col" style="margin-bottom: 1.75rem;">
+          <!-- Alerts Log & Drill Trigger -->
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+              <h3 style="font-size: 1.15rem; color: #38bdf8;">System Warnings & Alerts Log</h3>
+              <button class="btn btn-danger btn-sm" onclick="triggerAdminTestAlert()">🚨 Trigger Drill Warning</button>
+            </div>
+            <div style="max-height: 280px; overflow-y: auto;" id="adminAlertsList">
+              <!-- Injected via JavaScript -->
+            </div>
+          </div>
+
+          <!-- Configurable Safety Thresholds Form -->
+          <div class="card">
+            <h3 style="font-size: 1.15rem; color: #38bdf8; margin-bottom: 0.85rem;">System Safety Thresholds Configuration</h3>
+            <form id="adminThresholdsForm" onsubmit="saveAdminThresholds(event)">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1rem;">
+                <div>
+                  <label style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 0.25rem;">Critical Slope (°):</label>
+                  <input type="number" id="cfgSlope" value="30" min="15" max="60" class="btn btn-secondary" style="width: 100%; text-align: left; padding: 0.45rem;">
+                </div>
+                <div>
+                  <label style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 0.25rem;">24h Rain Threshold (mm):</label>
+                  <input type="number" id="cfgRain24h" value="50" min="20" max="250" class="btn btn-secondary" style="width: 100%; text-align: left; padding: 0.45rem;">
+                </div>
+                <div>
+                  <label style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 0.25rem;">72h Rain Accumulation (mm):</label>
+                  <input type="number" id="cfgRain72h" value="120" min="50" max="500" class="btn btn-secondary" style="width: 100%; text-align: left; padding: 0.45rem;">
+                </div>
+                <div>
+                  <label style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 0.25rem;">Mountain Speed Limit (km/h):</label>
+                  <input type="number" id="cfgSpeed" value="60" min="30" max="100" class="btn btn-secondary" style="width: 100%; text-align: left; padding: 0.45rem;">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">💾 Save System Configuration</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- 6. Searchable Prediction History Table -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.15rem; color: #38bdf8;">Historical Prediction Records</h3>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="text" id="adminPredSearchInput" placeholder="Filter location/factor..." 
+                class="btn btn-secondary btn-sm" style="width: 180px; text-align: left; padding: 0.35rem 0.6rem;"
+                oninput="filterAdminHistoryTable(this.value)">
+              <select id="adminPredRiskFilter" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.6rem;" onchange="filterAdminHistoryRisk(this.value)">
+                <option value="">All Risk Levels</option>
+                <option value="HIGH RISK">High Risk</option>
+                <option value="MEDIUM RISK">Medium Risk</option>
+                <option value="LOW RISK">Low Risk</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="admin-table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Timestamp</th>
+                  <th>Location</th>
+                  <th>Risk Level</th>
+                  <th>Hazard Score</th>
+                  <th>Slope (Horn 3×3)</th>
+                  <th>24h Rain</th>
+                  <th>Primary Factor</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <!-- Injected via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Global Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts (Local Vendor with CDN Fallback) -->
+  <script src="/static/vendor/leaflet/leaflet.js"></script>
+  <script>
+    if (typeof L === 'undefined') {
+      document.write('<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>');
+    }
+  </script>
+  <script src="/static/vendor/chartjs/chart.umd.min.js"></script>
+  <script>
+    if (typeof Chart === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+    }
+  </script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

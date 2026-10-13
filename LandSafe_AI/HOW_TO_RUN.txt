@@ -1,0 +1,40 @@
+=====================================================================
+LANDSAFE AI — B.TECH AIML MAJOR PROJECT QUICK RUN GUIDE
+=====================================================================
+
+1. HOW TO RUN THE PROJECT (प्रोजेक्ट कैसे चलाएं):
+   - बस "START_LANDSAFE_AI.bat" फाइल पर DOUBLE CLICK करें!
+   - यह ऑटोमैटिकली पायथन चेक करेगा, लाइब्रेरी चेक करेगा, फ्लास्क सर्वर चालू करेगा, 
+     और आपके ब्राउज़र में http://127.0.0.1:5000 खोल देगा।
+
+2. MANUAL RUN (कमांड प्रॉम्प्ट से चलाने के लिए):
+   - इस फोल्डर में CMD या PowerShell खोलें।
+   - कमांड चलाएं:
+       pip install -r requirements.txt
+       python app.py
+   - ब्राउज़र में खोलें: http://127.0.0.1:5000
+
+3. ADMIN LOGIN CREDENTIALS (एडमिन लॉगिन आईडी और पासवर्ड):
+   - Login ID / Email : adityacreative64@gmail.com (या केवल admin)
+   - Password         : aditya@9199
+   - Role             : Superadmin (सभी अलर्ट्स, लॉग्स और CSV एक्सपोर्ट एक्सेस)
+
+4. KEY MODULES & FEATURES (मुख्य फीचर्स):
+   [1] Home Page           : 2-Column लेआउट, लाइव टेलीमेट्री, Admin Dashboard Widget
+   [2] Live Monitoring     : रियल GPS + Open-Meteo वेदर + AI रिस्क प्रेडिक्शन
+   [3] All-India Search    : 19+ स्टेशन, रियल-टाइम मौसम और स्टेट फिल्टर
+   [4] Risk Map            : Leaflet GIS इंटरएक्टिव मैप, कलर-कोडेड मार्कर
+   [5] Weather             : 24h/72h बारिश, नमी और तापमान चार्ट्स
+   [6] Terrain Monitoring  : OpenCV शार्पनेस + सैटेलाइट स्प्लिट स्लाइडर
+   [7] 3D Landslide Video  : FLOW-3D, USGS 3D Slump (MP4), Aerial Drone (WebM), 
+                             और 60 FPS Interactive WebGL 3D Physics Simulator
+   [8] Vehicle Tracking    : असली GPS स्पीडोमीटर (बैठे रहने पर 0 KM/H, चलने पर रियल स्पीड)
+   [9] Admin Console       : डेटाबेस लॉग्स, मॉडल मैट्रिक्स, लाइव अलर्ट्स, CSV एक्सपोर्ट
+
+5. COLLEGE PRESENTATION / VIVA NOTES:
+   - ML Model     : Scikit-learn Random Forest Classifier (120 Trees)
+   - Accuracy     : 89.9%
+   - Terrain DEM  : Horn 3x3 Gradient Algorithm
+   - Backend      : Python Flask REST API + SQLite3
+   - Geotechnical : Mohr-Coulomb Limit Equilibrium (Factor of Safety)
+=====================================================================
